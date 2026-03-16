@@ -1,11 +1,25 @@
 import {
   CreateTableCommand,
   DeleteTableCommand,
+  DescribeTableCommand,
   ListTablesCommand,
 } from "@aws-sdk/client-dynamodb";
 import { BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
-import { rawClient, docClient } from "./db.js";
+import { rawClient, docClient, isLocal } from "./db.js";
 import { models } from "./models/index.js";
+
+async function waitForTable(tableName: string) {
+  if (isLocal) return;
+  console.log(`  ⏳ Waiting for ${tableName} to become ACTIVE...`);
+  for (let i = 0; i < 60; i++) {
+    const { Table } = await rawClient.send(
+      new DescribeTableCommand({ TableName: tableName })
+    );
+    if (Table?.TableStatus === "ACTIVE") return;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`Table ${tableName} did not become ACTIVE`);
+}
 
 async function resetTables() {
   const { TableNames = [] } = await rawClient.send(new ListTablesCommand({}));
@@ -14,8 +28,22 @@ async function resetTables() {
       await rawClient.send(
         new DeleteTableCommand({ TableName: table.table.TableName })
       );
+      if (!isLocal) {
+        console.log(`  ⏳ Waiting for ${table.table.TableName} to be deleted...`);
+        for (let i = 0; i < 60; i++) {
+          try {
+            await rawClient.send(
+              new DescribeTableCommand({ TableName: table.table.TableName })
+            );
+            await new Promise((r) => setTimeout(r, 2000));
+          } catch {
+            break;
+          }
+        }
+      }
     }
     await rawClient.send(new CreateTableCommand(table.table));
+    await waitForTable(table.table.TableName!);
     console.log(`✓ Created table: ${table.table.TableName}`);
   }
 }
