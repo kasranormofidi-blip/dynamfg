@@ -1,0 +1,21 @@
+{
+  "name": "dynamfg",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DynamoDB data modeler & query playground for manufacturing workloads",
+  "scripts": {
+    "dev": "concurrently \"npm run db -w server\" \"sleep 3 && npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "seed": "npm run seed -w server",
+    "db": "npm run db -w server",
+    "build": "npm run build -w client"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
