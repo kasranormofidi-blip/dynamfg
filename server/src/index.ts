@@ -107,7 +107,7 @@ app.get("/api/tables/:tableName/items", async (req, res) => {
       new ScanCommand({
         TableName: req.params.tableName,
         ReturnConsumedCapacity: "TOTAL",
-        Limit: 100,
+        Limit: 500,
       })
     );
     res.json({

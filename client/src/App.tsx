@@ -4,6 +4,8 @@ import { ModelExplorer } from "./components/ModelExplorer";
 import { QueryPlayground } from "./components/QueryPlayground";
 import { ChallengeMode } from "./components/ChallengeMode";
 
+import { RawDataBrowser } from "./components/RawDataBrowser";
+
 export interface Model {
   name: string;
   description: string;
@@ -25,7 +27,7 @@ export interface Model {
 export default function App() {
   const [models, setModels] = useState<Model[]>([]);
   const [selected, setSelected] = useState<Model | null>(null);
-  const [mode, setMode] = useState<"explore" | "challenge">("explore");
+  const [mode, setMode] = useState<"explore" | "challenge" | "data">("explore");
 
   useEffect(() => {
     fetchModels().then((data) => {
@@ -60,6 +62,14 @@ export default function App() {
           >
             🎯 Challenges
           </button>
+          <button
+            onClick={() => setMode("data")}
+            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              mode === "data" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            📦 Raw Data
+          </button>
         </div>
       </header>
 
@@ -76,9 +86,13 @@ export default function App() {
             )}
           </main>
         </div>
-      ) : (
+      ) : mode === "challenge" ? (
         <main className="max-w-4xl mx-auto p-6">
           <ChallengeMode />
+        </main>
+      ) : (
+        <main className="max-w-6xl mx-auto p-6">
+          <RawDataBrowser />
         </main>
       )}
     </div>
